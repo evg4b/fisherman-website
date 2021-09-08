@@ -1,0 +1,61 @@
+# https://taskfile.dev
+
+version: '3'
+
+vars:
+  GIT_COMMIT:
+    sh: git log -n 1 --format=%h
+  VERSION_PATH: fisherman/internal/constants.Version
+  ENTRY_POINT: ./cmd/fisherman/...
+  OUTPUT_FILE: fisherman{{exeExt}}
+
+tasks:
+  build:
+    desc: Builds the go binary in developer mode.
+    cmds:
+      - go build -v -tags=debug -o {{ .OUTPUT_FILE }} -ldflags="-X {{ .VERSION_PATH }}=dev-{{ .GIT_COMMIT | upper }}" {{ .ENTRY_POINT }}
+
+  build:ci:
+    desc: '[For CI] Builds the go binary in production mode (NOT REALISE)'
+    cmds:
+      - go build -v -o {{ .OUTPUT_FILE }} -ldflags="-s -w -X {{ .VERSION_PATH }}=ci-{{ .GIT_COMMIT | upper }}" {{ .ENTRY_POINT }}
+
+  test:
+    desc: Runs all tests
+    cmds:
+      - go test -cover ./...
+
+  test:ci:
+    desc: '[For CI] Run all tests with coverage and race detection'
+    cmds:
+      - go test -race -cover -coverprofile='coverage.xml' -covermode=atomic -v ./...
+
+  lint:
+    desc: Lints all code
+    cmds:
+      - golangci-lint run ./...
+
+  check:
+    desc: Runs build, lint and test tasks
+    cmds:
+      - task: build
+      - task: lint
+      - task: test
+
+  install:
+    desc: Installs applications on the local computer using GO.
+    cmds:
+      - go install -ldflags="-X {{ .VERSION_PATH }}=dev-{{ .GIT_COMMIT | upper }}" {{ .ENTRY_POINT }}
+
+  generate:
+    desc: Generates mocks
+    cmds:
+      - minimock -i fisherman/internal.CliCommand -o ./testing/mocks/cli_command_mock.go
+      - minimock -i fisherman/internal/expression.Engine -o ./testing/mocks/engine_mock.go
+      - minimock -i fisherman/internal.ExecutionContext -o ./testing/mocks/execution_context_mock.go
+      - minimock -i fisherman/internal/handling.Factory -o ./testing/mocks/factory_mock.go
+      - minimock -i fisherman/internal/handling.Handler -o ./testing/mocks/handler_mock.go
+      - minimock -i fisherman/internal.Repository -o ./testing/mocks/repository_mock.go
+      - minimock -i fisherman/internal/configuration.Rule -o ./testing/mocks/rule_mock.go
+      - minimock -i fisherman/internal.Shell -o ./testing/mocks/shell_mock.go
+      - minimock -i github.com/go-git/go-billy/v5.Filesystem -o ./testing/mocks/filesystem_mock.go
