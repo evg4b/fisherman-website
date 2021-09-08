@@ -1,0 +1,43 @@
+{
+    "cSpell.words": [
+        "afero",
+        "applypatch",
+        "clicontext",
+        "coverprofile",
+        "Debugf",
+        "dupl",
+        "Evaluable",
+        "fatih",
+        "fsmonitor",
+        "fsmonitorwatchman",
+        "gocritic",
+        "gojuno",
+        "golangci",
+        "golint",
+        "goreleaser",
+        "gosec",
+        "govaluate",
+        "hashicorp",
+        "imdario",
+        "Infof",
+        "Knetic",
+        "ldflags",
+        "memfs",
+        "mergo",
+        "merkletrie",
+        "mitchellh",
+        "mkideal",
+        "noder",
+        "nolint",
+        "prerebase",
+        "sergi",
+        "stretchr",
+        "Unmarshl",
+        "valyala"
+    ],
+    "go.lintTool": "golangci-lint",
+    "go.lintFlags": [
+        "--fast"
+    ],
+    "go.buildTags": "debug"
+}
