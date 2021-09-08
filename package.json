@@ -9,7 +9,8 @@
     "swizzle": "docusaurus swizzle",
     "deploy": "docusaurus deploy",
     "serve": "docusaurus serve",
-    "version": "docusaurus docs:version"
+    "version": "docusaurus docs:version",
+    "subtree-fetch": "git fetch fisherman-source develop && git subtree pull --prefix fisherman-source fisherman-source develop --squash"
   },
   "dependencies": {
     "@docusaurus/core": "^2.0.0-beta.0",
