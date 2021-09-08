@@ -31,7 +31,7 @@ module.exports = {
       {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
-          path: '../docs',
+          path: 'fisherman-source/docs',
           includeCurrentVersion: true,
           showLastUpdateTime: true,
         },
