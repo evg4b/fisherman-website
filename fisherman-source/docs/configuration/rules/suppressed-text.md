@@ -1,6 +1,6 @@
 ---
-id: rules
-title: Rules
+id: suppressed-text
+title: suppressed-text
 ---
 
 ## suppressed-text
