@@ -29,3 +29,69 @@ Related links:
 <!-- TODO: Add correct links -->
 - [extract-variables](/)
 - [commit-message](/)
+
+## I want check TODOs in my code before commit
+
+Can be used to check that message starts with the issue number.
+
+```yaml
+hooks:
+  pre-commit:
+    rules:
+      - type: suppressed-text
+        substrings: [ 'TODO: ' ]
+        exclude: [ 'README.md' ]
+```
+
+Related links:
+
+<!-- TODO: Add correct links -->
+- [suppressed-text rule](./configuration/rules.md#suppressed-text)
+
+## I want run tests or lint before push changes to remote repo
+
+Can be used for final validation before pr create/update operation.
+
+```yaml
+hooks:
+  pre-push:
+    rules:
+      - type: run-program
+        name: Linting
+        program: golangci-lint
+        args: [ run,  ./... ]
+      - type: run-program
+        name: Tests
+        program: go
+        args: [ test,  ./... ]
+```
+
+Related links:
+
+<!-- TODO: Add correct links -->
+- [run-program rule](./configuration/rules.md#run-program)
+
+
+## I want create difference rules for each operation system.
+
+Can be used for creation shell scripts specified for os or run program with different params.
+
+```yaml
+hooks:
+  commit-msg:
+    rules:
+      - type: commit-message
+        when: IsWindows()
+        suffix: ' (Committed on windows)'
+      - type: commit-message
+        when: IsLinux()
+        suffix: ' (Committed on linux)'
+      - type: commit-message
+        when: IsMac()
+        suffix: ' (Committed on mac)'
+```
+
+Related links:
+
+<!-- TODO: Add correct links -->
+- [run-program rule](./configuration/rules.md#run-program)

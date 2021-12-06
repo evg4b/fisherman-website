@@ -3,7 +3,7 @@ package handling_test
 import (
 	"fisherman/internal/configuration"
 	"fisherman/internal/constants"
-	"fisherman/internal/handling"
+	. "fisherman/internal/handling"
 	"fisherman/internal/rules"
 	"fisherman/testing/mocks"
 	"testing"
@@ -20,8 +20,8 @@ func Test_getPreScripts(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		ruleCollection []handling.Rule
-		expected       []handling.Rule
+		ruleCollection []Rule
+		expected       []Rule
 	}{
 		{
 			name:           "common filtering",
@@ -42,15 +42,15 @@ func Test_getPreScripts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory := handling.NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
+			factory := NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
 				PreCommitHook: &configuration.HookConfig{
 					Rules: tt.ruleCollection,
 				},
 			})
 
-			actual, _ := factory.GetHook(constants.PreCommitHook, globalVars)
+			actual, _ := factory.GetHook(constants.PreCommitHook, map[string]interface{}{})
 
-			handler := actual.(*handling.HookHandler)
+			handler := actual.(*HookHandler)
 
 			assert.EqualValues(t, tt.expected, handler.Rules)
 		})
@@ -66,8 +66,8 @@ func Test_getPostScriptRules(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		ruleCollection []handling.Rule
-		expected       []handling.Rule
+		ruleCollection []Rule
+		expected       []Rule
 	}{
 		{
 			name:           "common filtering",
@@ -88,15 +88,15 @@ func Test_getPostScriptRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory := handling.NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
+			factory := NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
 				PreCommitHook: &configuration.HookConfig{
 					Rules: tt.ruleCollection,
 				},
 			})
 
-			actual, _ := factory.GetHook(constants.PreCommitHook, globalVars)
+			actual, _ := factory.GetHook(constants.PreCommitHook, map[string]interface{}{})
 
-			handler := actual.(*handling.HookHandler)
+			handler := actual.(*HookHandler)
 
 			assert.EqualValues(t, tt.expected, handler.PostScriptRules)
 		})
@@ -112,8 +112,8 @@ func Test_getScriptRules(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		ruleCollection []handling.Rule
-		expected       []handling.Rule
+		ruleCollection []Rule
+		expected       []Rule
 	}{
 		{
 			name:           "common filtering",
@@ -134,22 +134,24 @@ func Test_getScriptRules(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			factory := handling.NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
+			factory := NewHookHandlerFactory(mocks.NewEngineMock(t), configuration.HooksConfig{
 				PreCommitHook: &configuration.HookConfig{
 					Rules: tt.ruleCollection,
 				},
 			})
 
-			actual, _ := factory.GetHook(constants.PreCommitHook, globalVars)
+			actual, _ := factory.GetHook(constants.PreCommitHook, map[string]interface{}{})
 
-			handler := actual.(*handling.HookHandler)
+			handler := actual.(*HookHandler)
 
 			assert.EqualValues(t, tt.expected, handler.Scripts)
 		})
 	}
 }
 
-func getRule(t *testing.T, ruleType byte) handling.Rule {
+func getRule(t *testing.T, ruleType byte) Rule {
+	t.Helper()
+
 	return mocks.NewRuleMock(t).
 		GetTypeMock.Return(rules.ShellScriptType).
 		GetPositionMock.Return(ruleType).

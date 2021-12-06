@@ -4,34 +4,53 @@ import (
 	"context"
 	"fisherman/internal"
 	"fisherman/internal/constants"
-	"fisherman/internal/utils"
+	"fisherman/pkg/guards"
 	"io"
+	"runtime"
 	"time"
 
 	"github.com/evg4b/linebyline"
 	"github.com/go-errors/errors"
 	"github.com/go-git/go-billy/v5"
+	"github.com/go-git/go-billy/v5/util"
 )
 
 type ApplicationContext struct {
 	cwd           string
 	fs            billy.Filesystem
-	shell         internal.Shell
 	repo          internal.Repository
 	args          []string
-	output        linebyline.WriterGroup
+	env           []string
+	output        io.Writer
 	baseCtx       context.Context
 	cancelBaseCtx context.CancelFunc
 }
 
 const filePathArgumentIndex = 3
 
-func (ctx *ApplicationContext) Files() billy.Filesystem {
-	return ctx.fs
+func NewContext(options ...contextOption) *ApplicationContext {
+	baseCtx, cancelBaseCtx := context.WithCancel(context.TODO())
+	context := ApplicationContext{
+		cwd:           "",
+		args:          []string{},
+		env:           []string{},
+		output:        io.Discard,
+		baseCtx:       baseCtx,
+		cancelBaseCtx: cancelBaseCtx,
+	}
+
+	for _, option := range options {
+		option(&context)
+	}
+
+	guards.ShouldBeDefined(context.fs, "FileSystem should be connfigured")
+	guards.ShouldBeDefined(context.repo, "Repository should be connfigured")
+
+	return &context
 }
 
-func (ctx *ApplicationContext) Shell() internal.Shell {
-	return ctx.shell
+func (ctx *ApplicationContext) Files() billy.Filesystem {
+	return ctx.fs
 }
 
 func (ctx *ApplicationContext) Repository() internal.Repository {
@@ -43,7 +62,7 @@ func (ctx *ApplicationContext) Args() []string {
 }
 
 func (ctx *ApplicationContext) Output() io.WriteCloser {
-	return ctx.output.CreateWriter()
+	return linebyline.NewByLineWriter(ctx.output)
 }
 
 func (ctx *ApplicationContext) Cancel() {
@@ -72,12 +91,17 @@ func (ctx *ApplicationContext) Message() (string, error) {
 		return "", err
 	}
 
-	message, err := utils.ReadFileAsString(ctx.fs, messageFilePath)
+	message, err := util.ReadFile(ctx.fs, messageFilePath)
 	if err != nil {
 		return "", err
 	}
 
-	return message, nil
+	return string(message), nil
+}
+
+// Cwd returns current working directory.
+func (ctx *ApplicationContext) Cwd() string {
+	return ctx.cwd
 }
 
 func (ctx *ApplicationContext) Arg(index int) (string, error) {
@@ -115,5 +139,11 @@ func (ctx *ApplicationContext) GlobalVariables() (map[string]interface{}, error)
 		constants.CwdVariable:              ctx.cwd,
 		constants.BranchNameVariable:       currentBranch,
 		constants.TagVariable:              lastTag,
+		constants.OsVariable:               runtime.GOOS,
 	}, nil
+}
+
+// Env returns list of environment variables.
+func (ctx *ApplicationContext) Env() []string {
+	return ctx.env
 }

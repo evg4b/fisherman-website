@@ -34,7 +34,7 @@ jobs:
       - name: Lint
         uses: golangci/golangci-lint-action@v2
         with:
-          version: v1.40
+          version: v1.42.1
 
       - name: Build
         run: task build:ci
@@ -43,7 +43,6 @@ jobs:
         run: task test:ci
 
       - name: Upload coverage profile
-        if: startsWith(matrix.os, 'ubuntu')
         uses: codecov/codecov-action@v1
         with:
           file: ./coverage.xml

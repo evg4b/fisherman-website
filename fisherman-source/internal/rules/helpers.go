@@ -1,6 +1,8 @@
 package rules
 
-import "strings"
+import (
+	"strings"
+)
 
 func plainErrorFormatter(e []error) string {
 	parts := []string{}

@@ -1,7 +1,7 @@
 package rules_test
 
 import (
-	"fisherman/internal/rules"
+	. "fisherman/internal/rules"
 	"fisherman/testing/mocks"
 	"fisherman/testing/testutils"
 	"io/ioutil"
@@ -22,30 +22,31 @@ func TestPrepareMessage_Check(t *testing.T) {
 		ArgsMock.Return([]string{messageFilePath}).
 		FilesMock.Return(fs)
 
-	rule := rules.PrepareMessage{Message: message}
+	t.Run("not configured rule", func(t *testing.T) {
+		rule := PrepareMessage{}
 
-	err := rule.Check(ctx, ioutil.Discard)
+		err := rule.Check(ctx, ioutil.Discard)
 
-	assert.NoError(t, err)
-}
+		assert.NoError(t, err)
+	})
 
-func TestPrepareMessage_Check_NotConfigured(t *testing.T) {
-	ctx := mocks.NewExecutionContextMock(t)
-	rule := rules.PrepareMessage{}
+	t.Run("succeeded check ", func(t *testing.T) {
+		rule := PrepareMessage{Message: message}
 
-	err := rule.Check(ctx, ioutil.Discard)
+		err := rule.Check(ctx, ioutil.Discard)
 
-	assert.NoError(t, err)
+		assert.NoError(t, err)
+	})
 }
 
 func TestPrepareMessage_Compile(t *testing.T) {
-	rule := rules.PrepareMessage{
+	rule := PrepareMessage{
 		Message: "{{var1}}",
 	}
 
 	rule.Compile(map[string]interface{}{"var1": "VALUE"})
 
-	assert.Equal(t, rules.PrepareMessage{
+	assert.Equal(t, PrepareMessage{
 		Message: "VALUE",
 	}, rule)
 }

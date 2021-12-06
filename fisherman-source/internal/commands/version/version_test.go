@@ -2,24 +2,19 @@ package version_test
 
 import (
 	"bytes"
-	"fisherman/internal/commands/version"
+	. "fisherman/internal/commands/version"
 	"fisherman/pkg/log"
 	"fisherman/testing/mocks"
-	"io/ioutil"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	log.SetOutput(ioutil.Discard)
-}
-
 func TestCommand_Run(t *testing.T) {
 	output := bytes.NewBufferString("")
 	log.SetOutput(output)
 
-	command := version.NewCommand()
+	command := NewCommand()
 	err := command.Init([]string{})
 
 	assert.NoError(t, err)
@@ -31,7 +26,7 @@ func TestCommand_Run(t *testing.T) {
 }
 
 func TestCommand_Description(t *testing.T) {
-	command := version.NewCommand()
+	command := NewCommand()
 	err := command.Init([]string{})
 
 	assert.NoError(t, err)
@@ -39,7 +34,7 @@ func TestCommand_Description(t *testing.T) {
 }
 
 func TestCommand_Name(t *testing.T) {
-	command := version.NewCommand()
+	command := NewCommand()
 	err := command.Init([]string{})
 
 	assert.NoError(t, err)

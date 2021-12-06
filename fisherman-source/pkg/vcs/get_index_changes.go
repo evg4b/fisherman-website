@@ -2,9 +2,9 @@ package vcs
 
 import (
 	"bytes"
-	"fisherman/internal/utils"
 	"path"
 
+	"github.com/go-git/go-billy/v5/util"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/go-git/go-git/v5/utils/diff"
@@ -14,20 +14,20 @@ import (
 	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
+// nolint: cyclop
 func (r *GitRepository) GetIndexChanges() (map[string]Changes, error) {
 	indexChanges := make(map[string]Changes)
 
-	repo, err := r.repo()
+	if err := r.init(); err != nil {
+		return nil, err
+	}
+
+	head, err := r.repo.Head()
 	if err != nil {
 		return nil, err
 	}
 
-	head, err := repo.Head()
-	if err != nil {
-		return nil, err
-	}
-
-	commit, err := repo.CommitObject(head.Hash())
+	commit, err := r.repo.CommitObject(head.Hash())
 	if err != nil {
 		return nil, err
 	}
@@ -37,12 +37,12 @@ func (r *GitRepository) GetIndexChanges() (map[string]Changes, error) {
 		return nil, err
 	}
 
-	idx, err := repo.Storer.Index()
+	idx, err := r.storer.Index()
 	if err != nil {
 		return nil, err
 	}
 
-	wt, err := repo.Worktree()
+	wt, err := r.repo.Worktree()
 	if err != nil {
 		return nil, err
 	}
@@ -56,10 +56,12 @@ func (r *GitRepository) GetIndexChanges() (map[string]Changes, error) {
 
 	for _, diffTreeItem := range diffTree {
 		toPath := convertToPath(diffTreeItem.To)
-		toContent, err := utils.ReadFileAsString(fs, toPath)
+		toContentBytes, err := util.ReadFile(fs, toPath)
 		if err != nil {
 			return nil, err
 		}
+
+		toContent := string(toContentBytes)
 
 		if diffTreeItem.From == nil {
 			indexChanges[toPath] = Changes{
@@ -97,7 +99,7 @@ func (r *GitRepository) GetIndexChanges() (map[string]Changes, error) {
 }
 
 func convertToPath(node noder.Path) string {
-	var pathValue []string
+	pathValue := make([]string, 0, len(node))
 
 	for _, nodeSection := range node {
 		pathValue = append(pathValue, nodeSection.Name())

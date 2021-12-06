@@ -4,6 +4,7 @@ import (
 	"fisherman/internal/constants"
 	"fisherman/internal/utils"
 	"fisherman/pkg/log"
+	"fisherman/pkg/shell" // TODO: remove this dependency
 	"os/user"
 	"path/filepath"
 
@@ -15,28 +16,18 @@ import (
 
 const gitDir = ".git"
 
-type ConfigLoader struct {
-	usr   *user.User
-	cwd   string
-	files billy.Filesystem
-}
-
-func NewLoader(usr *user.User, cwd string, files billy.Filesystem) *ConfigLoader {
-	return &ConfigLoader{
-		usr:   usr,
-		cwd:   cwd,
-		files: files,
-	}
-}
-
-func (loader *ConfigLoader) FindConfigFiles() (map[string]string, error) {
+func FindConfigFiles(usr *user.User, cwd string, fs billy.Filesystem) (map[string]string, error) {
 	configs := map[string]string{}
-	for _, mode := range []string{GlobalMode, RepoMode, LocalMode} {
-		folder := GetConfigFolder(loader.usr, loader.cwd, mode)
+	for _, mode := range ModeOptions {
+		folder, err := GetConfigFolder(usr, cwd, mode)
+		if err != nil {
+			return nil, err
+		}
+
 		files := []string{}
 		for _, name := range constants.AppConfigNames {
 			configPath := filepath.Join(folder, name)
-			exist, err := utils.Exists(loader.files, configPath)
+			exist, err := utils.Exists(fs, configPath)
 			if err != nil {
 				return nil, err
 			}
@@ -58,28 +49,29 @@ func (loader *ConfigLoader) FindConfigFiles() (map[string]string, error) {
 	return configs, nil
 }
 
-func GetConfigFolder(usr *user.User, cwd, mode string) string {
+func GetConfigFolder(usr *user.User, cwd, mode string) (string, error) {
 	switch mode {
 	case LocalMode:
-		return filepath.Join(cwd, gitDir)
+		return filepath.Join(cwd, gitDir), nil
 	case RepoMode:
-		return filepath.Join(cwd)
+		return filepath.Join(cwd), nil
 	case GlobalMode:
-		return filepath.Join(usr.HomeDir)
+		return filepath.Join(usr.HomeDir), nil
 	default:
-		panic("unknown config mode")
+		return "", errors.New("unknown config mode")
 	}
 }
 
-func (loader *ConfigLoader) Load(files map[string]string) (*FishermanConfig, error) {
+func Load(fs billy.Filesystem, files map[string]string) (*FishermanConfig, error) {
 	config := FishermanConfig{
-		Output: log.DefaultOutputConfig,
+		Output:       log.DefaultOutputConfig,
+		DefaultShell: shell.Default().GetName(),
 	}
 
-	for _, mode := range []string{GlobalMode, RepoMode, LocalMode} {
+	for _, mode := range ModeOptions {
 		file, ok := files[mode]
 		if ok {
-			loadedConfig, err := loader.unmarshlFile(file)
+			loadedConfig, err := unmarshlFile(fs, file)
 			if err != nil {
 				return &config, err
 			}
@@ -94,10 +86,10 @@ func (loader *ConfigLoader) Load(files map[string]string) (*FishermanConfig, err
 	return &config, nil
 }
 
-func (loader *ConfigLoader) unmarshlFile(path string) (*FishermanConfig, error) {
+func unmarshlFile(fs billy.Filesystem, path string) (*FishermanConfig, error) {
 	var config FishermanConfig
 
-	file, err := loader.files.Open(path)
+	file, err := fs.Open(path)
 	if err != nil {
 		return nil, errors.Errorf("open %s: %w", path, err)
 	}
