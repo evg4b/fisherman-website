@@ -1,3 +1,13 @@
+const fs = require('fs');
+const path = require('path');
+
+const rules = fs.readdirSync('./fisherman-source/docs/configuration/rules');
+
+const rulesItems = rules.map(mdFile => ({
+  type: "doc",
+  id: `configuration/rules/${path.parse(mdFile).name}`
+}));
+
 module.exports = {
   someSidebar: [
     {
@@ -22,8 +32,10 @@ module.exports = {
           id: "configuration/hooks-configuration"
         },
         {
-          type: "doc",
-          id: "configuration/rules"
+          type: "category",
+          label: "Rules",
+          collapsed: true,
+          items: rulesItems
         },
         {
           type: "doc",
