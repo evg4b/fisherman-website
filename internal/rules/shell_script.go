@@ -4,6 +4,8 @@ import (
 	"fisherman/internal"
 	"fisherman/internal/utils"
 	"fisherman/pkg/shell"
+	pkgutils "fisherman/pkg/utils"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os/exec"
@@ -28,16 +30,33 @@ func (rule *ShellScript) GetPosition() byte {
 }
 
 func (rule *ShellScript) GetPrefix() string {
-	return utils.GetOrDefault(rule.Name, rule.Type)
+	return utils.FirstNotEmpty(rule.Name, rule.Type)
 }
 
 func (rule *ShellScript) Check(ctx internal.ExecutionContext, output io.Writer) error {
-	script := shell.NewScript(rule.Commands).
-		SetEnvironmentVariables(rule.Env).
-		SetDirectory(rule.Dir)
+	formatterOutput := formatOutput(output, rule)
+	env := pkgutils.MergeEnv(ctx.Env(), rule.Env)
+	strategy, err := getShellStrategy(rule.Shell)
+	if err != nil {
+		return errors.Errorf("failed to cheate shell host: %w", err)
+	}
 
-	shell := ctx.Shell()
-	err := shell.Exec(ctx, formatOutput(output, rule), rule.Shell, script)
+	host := shell.NewHost(
+		ctx,
+		strategy,
+		shell.WithEnv(env),
+		shell.WithStdout(formatterOutput),
+		shell.WithCwd(rule.Dir),
+	)
+
+	for _, command := range rule.Commands {
+		_, err := fmt.Fprintln(host, command)
+		if err != nil {
+			return errors.Errorf("failed to exec shell script: %w", err)
+		}
+	}
+
+	err = host.Wait()
 	if err != nil {
 		var exitCodeError *exec.ExitError
 		if errors.As(err, &exitCodeError) {
@@ -64,4 +83,21 @@ func formatOutput(output io.Writer, rule *ShellScript) io.Writer {
 	}
 
 	return ioutil.Discard
+}
+
+func getShellStrategy(name string) (shell.ShellStrategy, error) {
+	if utils.IsEmpty(name) {
+		return shell.Default(), nil
+	}
+
+	switch name {
+	case "cmd":
+		return shell.Cmd(), nil
+	case "powershell":
+		return shell.PowerShell(), nil
+	case "bash":
+		return shell.PowerShell(), nil
+	default:
+		return nil, errors.New("unsupported shell")
+	}
 }

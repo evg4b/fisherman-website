@@ -2,6 +2,9 @@
 
 version: '3'
 
+env:
+  GO_HELPER_PROCESS: 0
+
 vars:
   GIT_COMMIT:
     sh: git log -n 1 --format=%h
@@ -30,6 +33,16 @@ tasks:
     cmds:
       - go test -race -cover -coverprofile='coverage.xml' -covermode=atomic -v ./...
 
+  test:docker:
+    desc: ' Run all tests in docker container'
+    cmds:
+      - docker run --rm -v $PWD:/usr/src/fisherman -w /usr/src/fisherman golang go test ./...
+
+  test:docker-cover:
+    desc: ' Run all tests with coverage and race detection in docker container'
+    cmds:
+      - docker run --rm -v $PWD:/usr/src/fisherman -w /usr/src/fisherman golang go test -race -cover -coverprofile='coverage.xml' -covermode=atomic -v ./...
+
   lint:
     desc: Lints all code
     cmds:
@@ -57,5 +70,6 @@ tasks:
       - minimock -i fisherman/internal/handling.Handler -o ./testing/mocks/handler_mock.go
       - minimock -i fisherman/internal.Repository -o ./testing/mocks/repository_mock.go
       - minimock -i fisherman/internal/configuration.Rule -o ./testing/mocks/rule_mock.go
-      - minimock -i fisherman/internal.Shell -o ./testing/mocks/shell_mock.go
       - minimock -i github.com/go-git/go-billy/v5.Filesystem -o ./testing/mocks/filesystem_mock.go
+      - minimock -i github.com/go-git/go-billy/v5.File -o ./testing/mocks/file_mock.go
+      - minimock -i fisherman/pkg/vcs.GoGitRepository -o ./testing/mocks/go_git_repository_mock.go

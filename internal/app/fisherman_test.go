@@ -3,43 +3,37 @@ package app_test
 import (
 	"context"
 	"fisherman/internal"
-	"fisherman/pkg/log"
+	. "fisherman/internal/app"
 	"fisherman/testing/mocks"
 	"fisherman/testing/testutils"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"testing"
 
 	"github.com/go-errors/errors"
-
-	"fisherman/internal/app"
-	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	log.SetOutput(ioutil.Discard)
-}
-
 func TestRunner_Run(t *testing.T) {
 	tests := []struct {
-		name          string
-		args          []string
-		commands      []internal.CliCommand
-		expectedError string
+		name        string
+		args        []string
+		commands    []internal.CliCommand
+		expectedErr string
 	}{
 		{
-			name: "Should run called commnad and return its error",
+			name: "should run called commnad and return its error",
 			args: []string{"init"},
 			commands: []internal.CliCommand{
 				makeCommand(t, "handle"),
 				makeCommand(t, "remove"),
 				makeExpectedCommand(t, "init", errors.New("expected error")),
 			},
-			expectedError: "expected error",
+			expectedErr: "expected error",
 		},
 		{
-			name: "Should run called commnad and return nil when command executed witout error",
+			name: "should run called commnad and return nil when command executed witout error",
 			args: []string{"init"},
 			commands: []internal.CliCommand{
 				makeCommand(t, "handle"),
@@ -48,23 +42,23 @@ func TestRunner_Run(t *testing.T) {
 			},
 		},
 		{
-			name: "Should return error when command not found",
+			name: "should return error when command not found",
 			args: []string{"not"},
 			commands: []internal.CliCommand{
 				makeCommand(t, "handle"),
 				makeCommand(t, "remove"),
 				makeCommand(t, "init"),
 			},
-			expectedError: "unknown command: not",
+			expectedErr: "unknown command: not",
 		},
 		{
-			name:          "Should return error when command not registered",
-			args:          []string{"not"},
-			commands:      []internal.CliCommand{},
-			expectedError: "unknown command: not",
+			name:        "Should return error when command not registered",
+			args:        []string{"not"},
+			commands:    []internal.CliCommand{},
+			expectedErr: "unknown command: not",
 		},
 		{
-			name: "Should not return error when commnad not specified",
+			name: "should not return error when commnad not specified",
 			args: []string{},
 			commands: []internal.CliCommand{
 				makeCommand(t, "handle"),
@@ -76,22 +70,25 @@ func TestRunner_Run(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			appInstance := app.NewAppBuilder().
-				WithCommands(tt.commands).
-				WithFs(mocks.NewFilesystemMock(t)).
-				WithRepository(mocks.NewRepositoryMock(t)).
-				WithShell(mocks.NewShellMock(t)).
-				Build()
+			appInstance := NewFishermanApp(
+				WithCommands(tt.commands),
+				WithFs(mocks.NewFilesystemMock(t)),
+				WithRepository(mocks.NewRepositoryMock(t)),
+				WithCwd("/"),
+				WithOutput(io.Discard),
+			)
 
 			assert.NotPanics(t, func() {
 				err := appInstance.Run(context.TODO(), tt.args)
-				testutils.CheckError(t, tt.expectedError, err)
+				testutils.AssertError(t, tt.expectedErr, err)
 			})
 		})
 	}
 }
 
 func makeCommand(t *testing.T, name string) *mocks.CliCommandMock {
+	t.Helper()
+
 	return mocks.NewCliCommandMock(t).
 		NameMock.Return(name).
 		InitMock.Return(nil).
@@ -99,6 +96,8 @@ func makeCommand(t *testing.T, name string) *mocks.CliCommandMock {
 }
 
 func makeExpectedCommand(t *testing.T, name string, err error) *mocks.CliCommandMock {
+	t.Helper()
+
 	return makeCommand(t, name).
 		RunMock.Return(err)
 }

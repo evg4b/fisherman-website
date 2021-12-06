@@ -14,7 +14,6 @@ import (
 	"fisherman/internal/utils"
 	"fisherman/pkg/guards"
 	"fisherman/pkg/log"
-	"fisherman/pkg/shell"
 	"fisherman/pkg/vcs"
 	"os"
 	"os/user"
@@ -38,16 +37,15 @@ func main() {
 
 	fs := osfs.New("")
 
-	configLoader := configuration.NewLoader(usr, cwd, fs)
-
-	configs, err := configLoader.FindConfigFiles()
+	configs, err := configuration.FindConfigFiles(usr, cwd, fs)
 	guards.NoError(err)
 
-	config, err := configLoader.Load(configs)
+	config, err := configuration.Load(fs, configs)
 	guards.NoError(err)
 
 	log.Configure(config.Output)
 
+	// TODO: Add Signal Interrupt handler
 	ctx := context.Background()
 	engine := expression.NewGoExpressionEngine()
 
@@ -59,23 +57,22 @@ func main() {
 		Configs:    configs,
 	}
 
-	shell := shell.NewShell().
-		WithWorkingDirectory(cwd).
-		WithDefaultShell(utils.GetOrDefault(config.DefaultShell, shell.PlatformDefaultShell))
-
-	fishermanApp := app.NewAppBuilder().
-		WithCommands([]internal.CliCommand{
+	fishermanApp := app.NewFishermanApp(
+		app.WithCommands([]internal.CliCommand{
 			initialize.NewCommand(fs, appInfo, usr),
 			handle.NewCommand(hookFactory, &config.Hooks, appInfo),
 			remove.NewCommand(fs, appInfo, usr),
 			version.NewCommand(),
-		}).
-		WithFs(fs).
-		WithOutput(os.Stdout).
-		WithRepository(vcs.OpenGitRepository(cwd)).
-		WithShell(shell).
-		Build()
+		}),
+		app.WithFs(fs),
+		app.WithOutput(os.Stdout),
+		app.WithRepository(vcs.NewRepository(
+			vcs.WithFsRepo(cwd),
+		)),
+		app.WithEnv(os.Environ()),
+	)
 
+	// TODO: Add interrupt event hadling (stopping)
 	if err = fishermanApp.Run(ctx, os.Args[1:]); err != nil {
 		panic(err)
 	}

@@ -2,7 +2,7 @@ package initialize_test
 
 import (
 	"fisherman/internal"
-	"fisherman/internal/commands/initialize"
+	. "fisherman/internal/commands/initialize"
 	"fisherman/internal/constants"
 	"fisherman/testing/mocks"
 	"fisherman/testing/testutils"
@@ -13,33 +13,35 @@ import (
 )
 
 func TestNewCommand(t *testing.T) {
-	command := initialize.NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
+	command := NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
 	assert.NotNil(t, command)
 }
 
-func TestCommand_Run_Force_Mode(t *testing.T) {
-	cwd := "/demo/"
+func TestCommand_Run(t *testing.T) {
+	t.Run("runs with force mode", func(t *testing.T) {
+		cwd := "/demo/"
 
-	fs := testutils.FsFromMap(t, map[string]string{
-		filepath.Join(cwd, constants.AppConfigNames[0]): "content",
+		fs := testutils.FsFromMap(t, map[string]string{
+			filepath.Join(cwd, constants.AppConfigNames[0]): "content",
+		})
+
+		command := NewCommand(fs, internal.AppInfo{Cwd: cwd}, &testutils.TestUser)
+
+		err := command.Init([]string{"--force"})
+		assert.NoError(t, err)
+		err = command.Run(mocks.NewExecutionContextMock(t))
+		assert.NoError(t, err)
 	})
-
-	command := initialize.NewCommand(fs, internal.AppInfo{Cwd: cwd}, &testutils.TestUser)
-
-	err := command.Init([]string{"--force"})
-	assert.NoError(t, err)
-	err = command.Run(mocks.NewExecutionContextMock(t))
-	assert.NoError(t, err)
 }
 
 func TestCommand_Name(t *testing.T) {
-	command := initialize.NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
+	command := NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
 
 	assert.Equal(t, command.Name(), "init")
 }
 
 func TestCommand_Description(t *testing.T) {
-	command := initialize.NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
+	command := NewCommand(mocks.NewFilesystemMock(t), mocks.AppInfoStub, &testutils.TestUser)
 
 	assert.NotEmpty(t, command.Description())
 }

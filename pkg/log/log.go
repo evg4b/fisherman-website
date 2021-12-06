@@ -3,7 +3,6 @@ package log
 import (
 	"fmt"
 	"io"
-	"os"
 
 	"github.com/fatih/color"
 )
@@ -23,10 +22,11 @@ var (
 	inf *color.Color = color.New(color.FgWhite)
 )
 
-var generalOutput io.Writer = os.Stdout
-var ErrorOutput = NewlevelWriter(generalOutput, ErrorLevel)
-var DebugOutput = NewlevelWriter(generalOutput, DebugLevel)
-var InfoOutput = NewlevelWriter(generalOutput, InfoLevel)
+var (
+	ErrorOutput = NewlevelWriter(generalOutput, ErrorLevel)
+	DebugOutput = NewlevelWriter(generalOutput, DebugLevel)
+	InfoOutput  = NewlevelWriter(generalOutput, InfoLevel)
+)
 
 func SetOutput(output io.Writer) {
 	generalOutput = output

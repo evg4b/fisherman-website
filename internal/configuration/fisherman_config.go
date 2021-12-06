@@ -12,8 +12,6 @@ type FishermanConfig struct {
 }
 
 var DefaultConfig = `
-# yaml-language-server: $schema=https://raw.githubusercontent.com/evg4b/fisherman/develop/json-scheme.json
-
 hooks:
   commit-msg:
     rules:
@@ -26,3 +24,5 @@ var (
 	LocalMode  = "local"
 	RepoMode   = "repo"
 )
+
+var ModeOptions = []string{GlobalMode, RepoMode, LocalMode}

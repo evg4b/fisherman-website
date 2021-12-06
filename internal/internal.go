@@ -2,32 +2,35 @@ package internal
 
 import (
 	"context"
-	"fisherman/pkg/shell"
 	"fisherman/pkg/vcs"
 	"io"
 
 	"github.com/go-git/go-billy/v5"
 )
 
+// ExecutionContext is interface to access execution context.
 type ExecutionContext interface {
 	context.Context
 	GlobalVariables() (map[string]interface{}, error)
 	Files() billy.Filesystem
-	Shell() Shell
 	Repository() Repository
 	Args() []string
 	Arg(index int) (string, error)
 	Output() io.WriteCloser
 	Message() (string, error)
 	Cancel()
+	Cwd() string
+	Env() []string
 }
 
+// TODO: Remove this structure after option pattern implementation in internal/commands/... .
 type AppInfo struct {
 	Cwd        string
 	Executable string
 	Configs    map[string]string
 }
 
+// Repository is interface to comunicate with git.
 type Repository interface {
 	GetCurrentBranch() (string, error)
 	GetUser() (vcs.User, error)
@@ -38,10 +41,7 @@ type Repository interface {
 	GetIndexChanges() (map[string]vcs.Changes, error)
 }
 
-type Shell interface {
-	Exec(context.Context, io.Writer, string, *shell.Script) error
-}
-
+// CliCommand is interface to define cli command.
 type CliCommand interface {
 	Init(args []string) error
 	Run(ctx ExecutionContext) error
