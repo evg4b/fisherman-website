@@ -18,7 +18,7 @@ Run program rule can be configured using the following structure:
 - **name** - List of lines that should not be included in the commit.
 - **program** - Program name or path to program binary
 - **args** - List of arguments for start
-- **when** - An expression on C like language. It allows you to define a condition for executing a program. See more in section [Condition expressions](./expressions.md).
+- **when** - An expression on C like language. It allows you to define a condition for executing a program. See more in section [Condition expressions](../expressions.md).
 - **env** - Sets additional environment variables (system environment variables also will be included) for the program.
 - **output** - Indicates whether to print the command output. By default false. To display parallel output, use a prefix with script name before each output line.
 - **dir** - Sets current working directory for program.

@@ -22,7 +22,7 @@ Shell script can be configured using the following structure:
 You can create as many scripts to validation. Scripts will be executed on the [shell for your system](#shell-for-system).
 
 - **commands** - Array of strings with validation script commands. Is also supports tempesting based on hook variables.
-- **when** - An expression on C like language. It allows you to define a condition for executing a script. See more in section [Condition expressions](./expressions.md).
+- **when** - An expression on C like language. It allows you to define a condition for executing a script. See more in section [Condition expressions](../expressions.md).
 - **env** - Sets additional environment variables (system environment variables also will be included)  for the command.
 - **output** - Indicates whether to print the command output. By default false. To display parallel output, use a prefix with script name before each output line.
 
