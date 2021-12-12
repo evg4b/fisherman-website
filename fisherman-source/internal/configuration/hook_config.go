@@ -1,7 +1,8 @@
 package configuration
 
 import (
-	"fisherman/internal"
+	"context"
+	"fisherman/internal/rules"
 	"fisherman/internal/utils"
 	"io"
 	"regexp"
@@ -16,16 +17,15 @@ type Rule interface {
 	GetPrefix() string
 	GetContition() string
 	GetPosition() byte
-	Check(internal.ExecutionContext, io.Writer) error
+	Check(context.Context, io.Writer) error
 	Compile(map[string]interface{})
+	Init(options ...rules.RuleOption)
 }
 
 type ExtractVariable struct {
 	Variable   string `yaml:"variable"`
 	Expression string `yaml:"expression"`
 }
-
-type Variables = map[string]interface{}
 
 type HookConfig struct {
 	StaticVariables  map[string]string
@@ -55,7 +55,7 @@ func (c *HookConfig) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (c *HookConfig) Compile(global Variables) (Variables, error) {
+func (c *HookConfig) Compile(global map[string]interface{}) (map[string]interface{}, error) {
 	variables := map[string]interface{}{}
 	err := mergo.MergeWithOverwrite(&variables, global)
 	if err != nil {

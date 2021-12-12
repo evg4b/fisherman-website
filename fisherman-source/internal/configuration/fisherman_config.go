@@ -5,13 +5,14 @@ import (
 )
 
 type FishermanConfig struct {
-	GlobalVariables Variables        `yaml:"variables,omitempty"`
-	Hooks           HooksConfig      `yaml:"hooks,omitempty"`
-	Output          log.OutputConfig `yaml:"output,omitempty"`
-	DefaultShell    string           `yaml:"default-shell,omitempty"`
+	GlobalVariables map[string]interface{} `yaml:"variables,omitempty"`
+	Hooks           HooksConfig            `yaml:"hooks,omitempty"`
+	Output          log.OutputConfig       `yaml:"output,omitempty"`
+	DefaultShell    string                 `yaml:"default-shell,omitempty"`
 }
 
-var DefaultConfig = `
+var DefaultConfig = `# Documentation {{URL}}
+
 hooks:
   commit-msg:
     rules:

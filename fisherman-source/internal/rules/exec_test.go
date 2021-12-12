@@ -1,8 +1,8 @@
 package rules_test
 
 import (
+	"context"
 	. "fisherman/internal/rules"
-	"fisherman/testing/mocks"
 	"fisherman/testing/testutils"
 	"io"
 	"os"
@@ -148,25 +148,23 @@ func TestExec_Check(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			rule := Exec{
-				BaseRule: BaseRule{Type: ExecType},
-				Commands: tt.commands,
-				Env:      tt.env,
-			}
+			rule := makeRule(
+				&Exec{
+					BaseRule: BaseRule{Type: ExecType},
+					Commands: tt.commands,
+					Env:      tt.env,
+				},
+				WithCwd("/"),
+				WithEnv(envWrapper([]string{
+					"GLOBAL_ENV=6482376487",
+					"PATH=Overwritten variable",
+					"VAR_1=Global value 1",
+					"VAR_2=Global value 2",
+					"VAR_3=Global value 3",
+				})),
+			)
 
-			globalEnv := []string{
-				"GLOBAL_ENV=6482376487",
-				"PATH=Overwritten variable",
-				"VAR_1=Global value 1",
-				"VAR_2=Global value 2",
-				"VAR_3=Global value 3",
-			}
-
-			ctx := mocks.NewExecutionContextMock(t).
-				EnvMock.Return(envWrapper(globalEnv)).
-				CwdMock.Return("/")
-
-			actual := rule.Check(ctx, io.Discard)
+			actual := rule.Check(context.TODO(), io.Discard)
 
 			testutils.AssertError(t, tt.expected, actual)
 		})
