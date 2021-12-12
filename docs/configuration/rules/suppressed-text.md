@@ -1,6 +1,6 @@
 ---
-id: rules
-title: Rules
+id: suppressed-text
+title: suppressed-text
 ---
 
 ## suppressed-text
@@ -9,7 +9,6 @@ The rule that prohibits committing if forbidden lines were added.
 
 ``` yaml
 - type: suppressed-text
-  when: 1 == 1
   substrings: [ 'suppressed', 'text' ]
   exclude: [ 'some/excluded/file.go' ]
 ```

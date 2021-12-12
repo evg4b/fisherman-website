@@ -46,7 +46,7 @@ hooks:
 Related links:
 
 <!-- TODO: Add correct links -->
-- [suppressed-text rule](./configuration/rules.md#suppressed-text)
+- [suppressed-text rule](./configuration/rules/suppressed-text.md)
 
 ## I want run tests or lint before push changes to remote repo
 
@@ -69,7 +69,7 @@ hooks:
 Related links:
 
 <!-- TODO: Add correct links -->
-- [run-program rule](./configuration/rules.md#run-program)
+- [run-program rule](./configuration/rules/run-program.md)
 
 
 ## I want create difference rules for each operation system.
@@ -94,4 +94,15 @@ hooks:
 Related links:
 
 <!-- TODO: Add correct links -->
-- [run-program rule](./configuration/rules.md#run-program)
+- [run-program rule](./configuration/rules/run-program.md)
+
+## Difference between exec and shell-script
+
+Rules [`exec`](./configuration/rules/exec) and [`shell-script`](./configuration/rules/shell-script) are very similar,
+at first glance. But they have one fundamental difference. Exec the more lighter rule, and one has no shell overhead.
+
+**In case wen you wan only exec program (lint or test tool)** and abort the actions if the exit code is not 0.
+Then you should use `exec` command.
+
+**In the case when you need more complex actions** for example: move files, communicate with operation system or execute
+commands pipeline then you should use `shell-scrip` command.

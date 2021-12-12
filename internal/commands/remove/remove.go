@@ -1,6 +1,7 @@
 package remove
 
 import (
+	"context"
 	"fisherman/internal"
 	"fisherman/internal/constants"
 	"fisherman/internal/utils"
@@ -31,19 +32,20 @@ func NewCommand(files billy.Filesystem, app internal.AppInfo, user *user.User) *
 	}
 }
 
-func (command *Command) Init(args []string) error {
-	return command.flagSet.Parse(args)
-}
+func (c *Command) Run(ctx context.Context, args []string) error {
+	err := c.flagSet.Parse(args)
+	if err != nil {
+		return err
+	}
 
-func (command *Command) Run(ctx internal.ExecutionContext) error {
 	filesToDelete := []string{}
-	for _, config := range command.app.Configs {
+	for _, config := range c.app.Configs {
 		filesToDelete = append(filesToDelete, config)
 	}
 
 	for _, hookName := range constants.HooksNames {
-		path := filepath.Join(command.app.Cwd, ".git", "hooks", hookName)
-		exist, err := utils.Exists(command.files, path)
+		path := filepath.Join(c.app.Cwd, ".git", "hooks", hookName)
+		exist, err := utils.Exists(c.files, path)
 		if err != nil {
 			return err
 		}
@@ -54,7 +56,7 @@ func (command *Command) Run(ctx internal.ExecutionContext) error {
 	}
 
 	for _, hookPath := range filesToDelete {
-		err := command.files.Remove(hookPath)
+		err := c.files.Remove(hookPath)
 		if err != nil {
 			return err
 		}
@@ -65,10 +67,10 @@ func (command *Command) Run(ctx internal.ExecutionContext) error {
 	return nil
 }
 
-func (command *Command) Name() string {
-	return command.flagSet.Name()
+func (c *Command) Name() string {
+	return c.flagSet.Name()
 }
 
-func (command *Command) Description() string {
-	return command.usage
+func (c *Command) Description() string {
+	return c.usage
 }

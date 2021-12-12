@@ -1,6 +1,7 @@
 package rules_test
 
 import (
+	"context"
 	syserrors "errors"
 	. "fisherman/internal/rules"
 	"fisherman/internal/validation"
@@ -41,7 +42,7 @@ func TestAddToIndex_Check(t *testing.T) {
 	t.Run("not configured rules", func(t *testing.T) {
 		rule := AddToIndex{BaseRule: BaseRule{Type: AddToIndexType}}
 
-		err := rule.Check(mocks.NewExecutionContextMock(t), ioutil.Discard)
+		err := rule.Check(context.TODO(), ioutil.Discard)
 
 		assert.NoError(t, err)
 	})
@@ -52,17 +53,18 @@ func TestAddToIndex_Check(t *testing.T) {
 			AddGlobMock.When("*.css").Then(nil).
 			AddGlobMock.When("mocks").Then(nil)
 
-		ctx := mocks.NewExecutionContextMock(t).RepositoryMock.Return(repo)
-
-		rule := AddToIndex{
-			Globs: []Glob{
-				{"glob1/*.go", true},
-				{"*.css", true},
-				{"mocks", true},
+		rule := makeRule(
+			&AddToIndex{
+				Globs: []Glob{
+					{"glob1/*.go", true},
+					{"*.css", true},
+					{"mocks", true},
+				},
 			},
-		}
+			WithRepository(repo),
+		)
 
-		err := rule.Check(ctx, ioutil.Discard)
+		err := rule.Check(context.TODO(), ioutil.Discard)
 
 		assert.NoError(t, err)
 	})
@@ -73,16 +75,18 @@ func TestAddToIndex_Check(t *testing.T) {
 			AddGlobMock.When("*.css").Then(syserrors.New("testError")).
 			AddGlobMock.When("mocks").Then(nil)
 
-		ctx := mocks.NewExecutionContextMock(t).RepositoryMock.Return(repo)
-
-		rule := AddToIndex{
-			Globs: []Glob{
-				{"glob1/*.go", true},
-				{"*.css", true},
-				{"mocks", true},
+		rule := makeRule(
+			&AddToIndex{
+				Globs: []Glob{
+					{"glob1/*.go", true},
+					{"*.css", true},
+					{"mocks", true},
+				},
 			},
-		}
-		err := rule.Check(ctx, ioutil.Discard)
+			WithRepository(repo),
+		)
+
+		err := rule.Check(context.TODO(), ioutil.Discard)
 
 		assert.EqualError(t, err, "failed to add files matching pattern '*.css' to the index: testError")
 		assert.IsType(t, &errors.Error{}, err)
@@ -94,8 +98,6 @@ func TestAddToIndex_Check(t *testing.T) {
 			AddGlobMock.When("*.css").Then(git.ErrGlobNoMatches).
 			AddGlobMock.When("mocks").Then(nil)
 
-		ctx := mocks.NewExecutionContextMock(t).RepositoryMock.Return(repo)
-
 		tests := []struct {
 			name       string
 			isRequired bool
@@ -106,16 +108,19 @@ func TestAddToIndex_Check(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				rule := AddToIndex{
-					BaseRule: BaseRule{Type: AddToIndexType},
-					Globs: []Glob{
-						{"glob1/*.go", tt.isRequired},
-						{"*.css", tt.isRequired},
-						{"mocks", tt.isRequired},
+				rule := makeRule(
+					&AddToIndex{
+						BaseRule: BaseRule{Type: AddToIndexType},
+						Globs: []Glob{
+							{"glob1/*.go", tt.isRequired},
+							{"*.css", tt.isRequired},
+							{"mocks", tt.isRequired},
+						},
 					},
-				}
+					WithRepository(repo),
+				)
 
-				err := rule.Check(ctx, ioutil.Discard)
+				err := rule.Check(context.TODO(), ioutil.Discard)
 
 				if !tt.isRequired {
 					assert.NoError(t, err)

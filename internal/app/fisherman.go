@@ -3,32 +3,33 @@ package app
 import (
 	"context"
 	"fisherman/internal"
-	"fisherman/internal/appcontext"
 	"fisherman/pkg/guards"
 	"fisherman/pkg/log"
-	pkgutils "fisherman/pkg/utils"
 	"io"
+	"os"
 
 	"github.com/go-git/go-billy/v5"
 )
 
 // FishermanApp is main application structure.
 type FishermanApp struct {
-	cwd      string
-	fs       billy.Filesystem
-	repo     internal.Repository
-	output   io.Writer
-	commands CliCommands
-	env      []string
+	cwd         string
+	fs          billy.Filesystem
+	repo        internal.Repository
+	output      io.Writer
+	commands    CliCommands
+	env         []string
+	interaption chan os.Signal
 }
 
 // NewFishermanApp is an fisherman application constructor.
 func NewFishermanApp(options ...appOption) *FishermanApp {
 	app := FishermanApp{
-		output:   io.Discard,
-		commands: CliCommands{},
-		cwd:      "",
-		env:      []string{},
+		output:      io.Discard,
+		commands:    CliCommands{},
+		cwd:         "",
+		env:         []string{},
+		interaption: make(chan os.Signal),
 	}
 
 	for _, option := range options {
@@ -44,6 +45,12 @@ func NewFishermanApp(options ...appOption) *FishermanApp {
 
 // Run runs fisherman application.
 func (r *FishermanApp) Run(baseCtx context.Context, args []string) error {
+	ctx, cancel := context.WithCancel(baseCtx)
+	subscribeInteruption(r.interaption, func() {
+		log.Debug("application received interapt event")
+		cancel()
+	})
+
 	if len(args) < 1 {
 		log.Debug("No command detected")
 		r.PrintDefaults()
@@ -51,24 +58,13 @@ func (r *FishermanApp) Run(baseCtx context.Context, args []string) error {
 		return nil
 	}
 
-	command, err := r.commands.GetCommand(args)
+	commandName, commandArgs := splitArgs(args)
+	command, err := r.commands.GetCommand(commandName)
 	if err != nil {
 		return err
 	}
 
-	ctx := appcontext.NewContext(
-		appcontext.WithCwd(r.cwd),
-		appcontext.WithBaseContext(baseCtx),
-		appcontext.WithFileSystem(r.fs),
-		appcontext.WithRepository(r.repo),
-		appcontext.WithArgs(args),
-		appcontext.WithOutput(log.InfoOutput),
-		appcontext.WithEnv(pkgutils.MergeEnv(r.env, map[string]string{
-			// TODO: Privide cistom environment variables from
-		})),
-	)
-
-	if err := command.Run(ctx); err != nil {
+	if err := command.Run(ctx, commandArgs); err != nil {
 		log.Debugf("Command '%s' finished with error, %v", command.Name(), err)
 
 		return err
@@ -77,4 +73,15 @@ func (r *FishermanApp) Run(baseCtx context.Context, args []string) error {
 	log.Debugf("Command '%s' finished witout error", command.Name())
 
 	return nil
+}
+
+func subscribeInteruption(interaption chan os.Signal, action func()) {
+	go func() {
+		<-interaption
+		action()
+	}()
+}
+
+func splitArgs(args []string) (string, []string) {
+	return args[0], args[1:]
 }
