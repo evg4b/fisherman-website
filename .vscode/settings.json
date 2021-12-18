@@ -1,8 +1,10 @@
 {
     "cSpell.words": [
         "afero",
+        "antonmedv",
         "applypatch",
         "asciicheck",
+        "charmap",
         "clicontext",
         "cmds",
         "covermode",
@@ -39,6 +41,7 @@
         "govaluate",
         "govet",
         "hashicorp",
+        "ianaindex",
         "ifshort",
         "imdario",
         "importas",
