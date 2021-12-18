@@ -54,11 +54,17 @@ tasks:
       - task: build
       - task: lint
       - task: test
+      - task: lint-docs
 
   install:
     desc: Installs applications on the local computer using GO.
     cmds:
       - go install -ldflags="-X {{ .VERSION_PATH }}=dev-{{ .GIT_COMMIT | upper }}" {{ .ENTRY_POINT }}
+
+  lint-docs:
+    desc: Installs applications on the local computer using GO.
+    cmds:
+      - markdownlint **/*.md
 
   generate:
     desc: Generates mocks
@@ -71,3 +77,6 @@ tasks:
       - minimock -i github.com/go-git/go-billy/v5.Filesystem -o ./testing/mocks/filesystem_mock.go
       - minimock -i github.com/go-git/go-billy/v5.File -o ./testing/mocks/file_mock.go
       - minimock -i fisherman/pkg/vcs.GoGitRepository -o ./testing/mocks/go_git_repository_mock.go
+      - minimock -i fisherman/pkg/shell.ShellStrategy -o ./testing/mocks/shell_strategy_mock.go -n ShellStrategyMock
+      - minimock -i golang.org/x/text/transform.Transformer -o ./testing/mocks/transformer_mock.go -n TransformerMock
+      - minimock -i golang.org/x/text/encoding.Encoding -o ./testing/mocks/encoding_mock.go -n EncodingMock

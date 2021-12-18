@@ -4,7 +4,7 @@ import (
 	"context"
 	"fisherman/internal/utils"
 	"fisherman/pkg/shell"
-	pkgutils "fisherman/pkg/utils"
+	"fisherman/pkg/shell/helpers"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,6 +20,7 @@ type ShellScript struct {
 	Name     string            `yaml:"name"`
 	Shell    string            `yaml:"shell"`
 	Commands []string          `yaml:"commands"`
+	Encoding string            `yaml:"encoding"`
 	Env      map[string]string `yaml:"env"`
 	Output   bool              `yaml:"output"`
 	Dir      string            `yaml:"dir"`
@@ -35,8 +36,13 @@ func (rule *ShellScript) GetPrefix() string {
 
 func (rule *ShellScript) Check(ctx context.Context, output io.Writer) error {
 	formatterOutput := formatOutput(output, rule)
-	env := pkgutils.MergeEnv(rule.BaseRule.env, rule.Env)
+	env := helpers.MergeEnv(rule.BaseRule.env, rule.Env)
 	strategy, err := getShellStrategy(rule.Shell)
+	if err != nil {
+		return errors.Errorf("failed to cheate shell host: %w", err)
+	}
+
+	encoding, err := getEncoding(rule.Encoding)
 	if err != nil {
 		return errors.Errorf("failed to cheate shell host: %w", err)
 	}
@@ -47,6 +53,7 @@ func (rule *ShellScript) Check(ctx context.Context, output io.Writer) error {
 		shell.WithEnv(env),
 		shell.WithStdout(formatterOutput),
 		shell.WithCwd(rule.Dir),
+		shell.WithEncoding(encoding),
 	)
 
 	for _, command := range rule.Commands {
