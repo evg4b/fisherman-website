@@ -15,7 +15,7 @@ information [here](./variables.md).
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## commit-msg
 
@@ -24,7 +24,7 @@ It can be used to override the commit message or validate its contents.
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 - [commit-message](./rules/commit-message)
 
 ## fsmonitor-watchman
@@ -32,21 +32,21 @@ This hook has following rules:
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## post-update
 
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## pre-applypatch
 
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## pre-commit
 
@@ -56,7 +56,7 @@ forgotten something, to make sure tests run, or to examine whatever you need to
 inspect in the code. This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 - [add-to-index](./rules/add-to-index)
 - [suppress-commit-files](./rules/suppress-commit-files)
 - [suppress-text](./rules/suppressed-text)
@@ -70,21 +70,21 @@ You can use it to validate a set of ref updates before a push occurs. This hook
 has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## pre-rebase
 
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## pre-receive
 
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)
 
 ## prepare-commit-msg
 
@@ -98,4 +98,4 @@ and before the editor is started. This hook has following rules:
 This hook has following rules:
 
 - [shell-script](./rules/shell-script)
-- [run-program](./rules/run-program)
+- [exec](./rules/exec)

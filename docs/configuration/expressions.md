@@ -10,12 +10,12 @@ document, you can find all supported syntaxes.
 
 The expression supports:
 
-* **strings** - single and double quotes (e.g. `"hello"`, `'hello'`)
-* **numbers** - e.g. `103`, `2.5`, `.5`
-* **arrays** - e.g. `[1, 2, 3]`
-* **maps** - e.g. `{foo: "bar"}`
-* **booleans** - `true` and `false`
-* **nil** - `nil`
+- **strings** - single and double quotes (e.g. `"hello"`, `'hello'`)
+- **numbers** - e.g. `103`, `2.5`, `.5`
+- **arrays** - e.g. `[1, 2, 3]`
+- **maps** - e.g. `{foo: "bar"}`
+- **booleans** - `true` and `false`
+- **nil** - `nil`
 
 ### Digit separators
 
@@ -52,12 +52,12 @@ The package comes with a lot of operators:
 
 #### Arithmetic Operators
 
-* `+` (addition)
-* `-` (subtraction)
-* `*` (multiplication)
-* `/` (division)
-* `%` (modulus)
-* `**` (pow)
+- `+` (addition)
+- `-` (subtraction)
+- `*` (multiplication)
+- `/` (division)
+- `%` (modulus)
+- `**` (pow)
 
 Example:
 
@@ -67,18 +67,18 @@ life + universe + everything
 
 #### Comparison Operators
 
-* `==` (equal)
-* `!=` (not equal)
-* `<` (less than)
-* `>` (greater than)
-* `<=` (less than or equal to)
-* `>=` (greater than or equal to)
+- `==` (equal)
+- `!=` (not equal)
+- `<` (less than)
+- `>` (greater than)
+- `<=` (less than or equal to)
+- `>=` (greater than or equal to)
 
 #### Logical Operators
 
-* `not` or `!`
-* `and` or `&&`
-* `or` or `||`
+- `not` or `!`
+- `and` or `&&`
+- `or` or `||`
 
 Example:
 
@@ -88,11 +88,11 @@ life < universe || life < everything
 
 #### String Operators
 
-* `+` (concatenation)
-* `matches` (regex match)
-* `contains` (string contains)
-* `startsWith` (has prefix)
-* `endsWith` (has suffix)
+- `+` (concatenation)
+- `matches` (regex match)
+- `contains` (string contains)
+- `startsWith` (has prefix)
+- `endsWith` (has suffix)
 
 To test if a string does *not* match a regex, use the logical `not` operator in
 combination with the `matches` operator:
@@ -114,8 +114,8 @@ Result will be set to `Arthur Dent`.
 
 #### Membership Operators
 
-* `in` (contain)
-* `not in` (does not contain)
+- `in` (contain)
+- `not in` (does not contain)
 
 Example:
 
@@ -129,7 +129,7 @@ user.Group in ["human_resources", "marketing"]
 
 #### Numeric Operators
 
-* `..` (range)
+- `..` (range)
 
 Example:
 
@@ -145,7 +145,7 @@ The range is inclusive:
 
 #### Ternary Operators
 
-* `foo ? 'yes' : 'no'`
+- `foo ? 'yes' : 'no'`
 
 Example:
 
@@ -155,19 +155,19 @@ user.Age > 30 ? "mature" : "immature"
 
 ### Builtin functions
 
-* `len` length of array, map or string
-* `all` will return `true` if all element satisfies the predicate
-* `none` will return `true` if all element does NOT satisfies the predicate
-* `any` will return `true` if any element satisfies the predicate
-* `one` will return `true` if exactly ONE element satisfies the predicate
-* `filter` filter array by the predicate
-* `map` map all items with the closure
-* `count` returns number of elements what satisfies the predicate
+- `len` length of array, map or string
+- `all` will return `true` if all element satisfies the predicate
+- `none` will return `true` if all element does NOT satisfies the predicate
+- `any` will return `true` if any element satisfies the predicate
+- `one` will return `true` if exactly ONE element satisfies the predicate
+- `filter` filter array by the predicate
+- `map` map all items with the closure
+- `count` returns number of elements what satisfies the predicate
 
-* `IsEmpty` will return `true` if a string is empty or contains only whitespace symbols.
-* `IsWindows` will return `true` if the fisherman is run on Windows.
-* `IsLinux` will return `true` if the fisherman is run on Linux.
-* `IsMacos` will return `true` if the fisherman is run on MacOs.
+- `IsEmpty` will return `true` if a string is empty or contains only whitespace symbols.
+- `IsWindows` will return `true` if the fisherman is run on Windows.
+- `IsLinux` will return `true` if the fisherman is run on Linux.
+- `IsMacos` will return `true` if the fisherman is run on MacOs.
 
 Examples:
 
@@ -185,7 +185,7 @@ one(Participants, {.Winner})
 
 ### Closures
 
-* `{...}` (closure)
+- `{...}` (closure)
 
 Closures allowed only with builtin functions. To access current item use `#` symbol.
 
@@ -202,7 +202,7 @@ filter(Tweets, {len(.Value) > 280})
 
 ### Slices
 
-* `array[:]` (slice)
+- `array[:]` (slice)
 
 Slices can work with arrays or strings.
 

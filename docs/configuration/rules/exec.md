@@ -15,7 +15,7 @@ see the information on [the link](../../faq#difference-between-exec-and-shell-sc
 ## Syntax
 
 ``` yaml
-- type: run-program
+- type: exec
   name: Check name
   env:
     VAR1: value
@@ -52,7 +52,7 @@ see the information on [the link](../../faq#difference-between-exec-and-shell-sc
   - **encoding** - Setup program output encoding (UTF-8) by default.
 
 ``` yaml
-- type: run-program
+- type: exec
   name: Check name
   commands:
     - program1 command arg1
@@ -61,7 +61,7 @@ see the information on [the link](../../faq#difference-between-exec-and-shell-sc
 ```
 
 ``` yaml
-- type: run-program
+- type: exec
   name: Check name
   commands:
     - program: executable1 arg1, arg2

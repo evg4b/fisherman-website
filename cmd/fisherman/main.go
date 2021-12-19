@@ -54,18 +54,16 @@ func main() {
 
 	ctx := context.Background()
 	engine := expression.NewGoExpressionEngine()
-
-	appInfo := internal.AppInfo{
-		Executable: executablePath,
-		Cwd:        cwd,
-		Configs:    configs,
-	}
-
 	repo := vcs.NewRepository(vcs.WithFsRepo(cwd))
 
 	fishermanApp := app.NewFishermanApp(
 		app.WithCommands([]internal.CliCommand{
-			initialize.NewCommand(fs, appInfo, usr),
+			initialize.NewCommand(
+				initialize.WithCwd(cwd),
+				initialize.WithFilesystem(fs),
+				initialize.WithUser(usr),
+				initialize.WithExecutable(executablePath),
+			),
 			handle.NewCommand(
 				handle.WithExpressionEngine(engine),
 				handle.WithHooksConfig(&config.Hooks),
@@ -73,13 +71,16 @@ func main() {
 				handle.WithCwd(cwd),
 				handle.WithFileSystem(fs),
 				handle.WithRepository(repo),
-				handle.WithArgs(os.Args[1:]),
 				handle.WithEnv(os.Environ()),
 				handle.WithWorkersCount(uint(runtime.NumCPU())),
 				handle.WithConfigFiles(configs),
 				handle.WithOutput(os.Stdout),
 			),
-			remove.NewCommand(fs, appInfo, usr),
+			remove.NewCommand(
+				remove.WithCwd(cwd),
+				remove.WithFileSystem(fs),
+				remove.WithConfigFiles(configs),
+			),
 			version.NewCommand(),
 		}),
 		app.WithFs(fs),

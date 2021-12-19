@@ -58,11 +58,11 @@ Can be used for final validation before pr create/update operation.
 hooks:
   pre-push:
     rules:
-      - type: run-program
+      - type: exec
         name: Linting
         program: golangci-lint
         args: [ run,  ./... ]
-      - type: run-program
+      - type: exec
         name: Tests
         program: go
         args: [ test,  ./... ]
@@ -71,7 +71,7 @@ hooks:
 Related links:
 
 <!-- TODO: Add correct links -->
-- [run-program rule](./configuration/rules/run-program.md)
+- [exec rule](./configuration/rules/exec)
 
 ## I want create difference rules for each operation system
 
@@ -96,7 +96,7 @@ hooks:
 Related links:
 
 <!-- TODO: Add correct links -->
-- [run-program rule](./configuration/rules/run-program.md)
+- [exec rule](./configuration/rules/exec)
 
 ## Difference between exec and shell-script
 
