@@ -3,14 +3,12 @@ package remove_test
 import (
 	"context"
 	"errors"
-	"fisherman/internal"
 	. "fisherman/internal/commands/remove"
 	"fisherman/internal/configuration"
 	"fisherman/pkg/log"
 	"fisherman/testing/mocks"
 	"fisherman/testing/testutils"
 	"io"
-	"os/user"
 	"path/filepath"
 	"testing"
 
@@ -24,12 +22,9 @@ func init() {
 }
 
 func TestCommand_Run(t *testing.T) {
-	appInfo := internal.AppInfo{
-		Cwd:        filepath.Join("usr", "home"),
-		Executable: filepath.Join("bin", "fisherman.exe"),
-		Configs: map[string]string{
-			configuration.GlobalMode: filepath.Join("usr", "home", ".fisherman.yml"),
-		},
+	cwd := filepath.Join("usr", "home")
+	configs := map[string]string{
+		configuration.GlobalMode: filepath.Join("usr", "home", ".fisherman.yml"),
 	}
 
 	tests := []struct {
@@ -63,9 +58,11 @@ func TestCommand_Run(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			command := NewCommand(tt.fs, appInfo, &user.User{
-				HomeDir: filepath.Join("usr", "home"),
-			})
+			command := NewCommand(
+				WithFileSystem(tt.fs),
+				WithCwd(cwd),
+				WithConfigFiles(configs),
+			)
 
 			err := command.Run(context.TODO(), []string{})
 
@@ -76,9 +73,8 @@ func TestCommand_Run(t *testing.T) {
 
 func TestCommand_Name(t *testing.T) {
 	command := NewCommand(
-		mocks.NewFilesystemMock(t),
-		mocks.AppInfoStub,
-		&testutils.TestUser,
+		WithFileSystem(mocks.NewFilesystemMock(t)),
+		WithCwd("/"),
 	)
 
 	assert.Equal(t, "remove", command.Name())
@@ -86,10 +82,24 @@ func TestCommand_Name(t *testing.T) {
 
 func TestCommand_Description(t *testing.T) {
 	command := NewCommand(
-		mocks.NewFilesystemMock(t),
-		mocks.AppInfoStub,
-		&testutils.TestUser,
+		WithFileSystem(mocks.NewFilesystemMock(t)),
+		WithCwd("/"),
 	)
 
 	assert.NotEmpty(t, command.Description())
+}
+
+func TestNewCommand(t *testing.T) {
+	t.Run("panic when cwd is not configured", func(t *testing.T) {
+		fs := mocks.NewFilesystemMock(t)
+		assert.PanicsWithError(t, "Cwd should be configured", func() {
+			_ = NewCommand(WithFileSystem(fs))
+		})
+	})
+
+	t.Run("panic when filesystem is not configured", func(t *testing.T) {
+		assert.PanicsWithError(t, "FileSystem should be configured", func() {
+			_ = NewCommand(WithCwd("/"))
+		})
+	})
 }

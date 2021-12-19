@@ -2,10 +2,10 @@ package initialize
 
 import (
 	"context"
-	"fisherman/internal"
 	"fisherman/internal/configuration"
 	"fisherman/internal/constants"
 	"fisherman/internal/utils"
+	"fisherman/pkg/guards"
 	"fisherman/pkg/log"
 	"flag"
 	"fmt"
@@ -20,25 +20,32 @@ import (
 )
 
 type Command struct {
-	flagSet  *flag.FlagSet
-	mode     string
-	force    bool
-	absolute bool
-	usage    string
-	files    billy.Filesystem
-	app      internal.AppInfo
-	user     *user.User
+	flagSet    *flag.FlagSet
+	mode       string
+	force      bool
+	absolute   bool
+	usage      string
+	fs         billy.Filesystem
+	user       *user.User
+	cwd        string
+	executable string
 }
 
 // TODO: Refactor to implement options pattern.
-func NewCommand(files billy.Filesystem, app internal.AppInfo, user *user.User) *Command {
+func NewCommand(options ...initializeOption) *Command {
 	command := &Command{
 		flagSet: flag.NewFlagSet("init", flag.ExitOnError),
 		usage:   "initializes fisherman in git repository",
-		files:   files,
-		app:     app,
-		user:    user,
 	}
+
+	for _, option := range options {
+		option(command)
+	}
+
+	guards.ShouldBeDefined(command.fs, "FileSystem should be configured")
+	guards.ShouldBeNotEmpty(command.cwd, "Cwd should be configured")
+	guards.ShouldBeNotEmpty(command.executable, "Executable should be configured")
+	guards.ShouldBeDefined(command.user, "User should be configured")
 
 	modeMessage := fmt.Sprintf(
 		"config location: %s, %s (default), %s. read more here %s",
@@ -64,9 +71,9 @@ func (c *Command) Run(ctx context.Context, args []string) error {
 	if !c.force {
 		var result *multierror.Error
 		for _, hookName := range constants.HooksNames {
-			hookPath := filepath.Join(c.app.Cwd, ".git", "hooks", hookName)
+			hookPath := filepath.Join(c.cwd, ".git", "hooks", hookName)
 			log.Debugf("Cheking hook '%s' (%s)", hookName, hookPath)
-			exist, err := utils.Exists(c.files, hookPath)
+			exist, err := utils.Exists(c.fs, hookPath)
 			if err != nil {
 				return err
 			}
@@ -84,9 +91,9 @@ func (c *Command) Run(ctx context.Context, args []string) error {
 	}
 
 	for _, hookName := range constants.HooksNames {
-		hookPath := filepath.Join(c.app.Cwd, ".git", "hooks", hookName)
+		hookPath := filepath.Join(c.cwd, ".git", "hooks", hookName)
 
-		err := util.WriteFile(c.files, hookPath, buildHook(hookName, c.getBinaryPath(), c.absolute), os.ModePerm)
+		err := util.WriteFile(c.fs, hookPath, buildHook(hookName, c.getBinaryPath(), c.absolute), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -106,13 +113,13 @@ func (c *Command) Description() string {
 }
 
 func (c *Command) writeConfig() error {
-	configFolder, err := configuration.GetConfigFolder(c.user, c.app.Cwd, c.mode)
+	configFolder, err := configuration.GetConfigFolder(c.user, c.cwd, c.mode)
 	if err != nil {
 		return err
 	}
 
 	configPath := filepath.Join(configFolder, constants.AppConfigNames[0])
-	exist, err := utils.Exists(c.files, configPath)
+	exist, err := utils.Exists(c.fs, configPath)
 	if err != nil {
 		return err
 	}
@@ -123,7 +130,7 @@ func (c *Command) writeConfig() error {
 			"URL": constants.ConfigurationFilesDocksURL,
 		})
 
-		err := util.WriteFile(c.files, configPath, []byte(content), os.ModePerm)
+		err := util.WriteFile(c.fs, configPath, []byte(content), os.ModePerm)
 		if err != nil {
 			return err
 		}
@@ -134,7 +141,7 @@ func (c *Command) writeConfig() error {
 
 func (c *Command) getBinaryPath() string {
 	if c.absolute {
-		return c.app.Executable
+		return c.executable
 	}
 
 	return constants.AppName
